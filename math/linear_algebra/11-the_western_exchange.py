@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import numpy as np
+"""A script that transposes matrix"""
 
 
 def np_transpose(matrix):
+    """A function that transposes matrix"""
     return matrix.transpose()
