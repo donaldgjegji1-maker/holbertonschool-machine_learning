@@ -4,7 +4,4 @@
 
 def summation_i_squared(n):
     """A function that sums up i squared"""
-    result=0
-    for i in range(1, n+1):
-        result+=i**2
-    return result
+    return n**3/3 + n**2/2 + n/6
