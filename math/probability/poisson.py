@@ -2,6 +2,7 @@
 """
 Poisson tasks class
 """
+from math import exp, factorial
 
 
 class Poisson:
