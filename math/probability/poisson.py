@@ -2,7 +2,6 @@
 """
 Poisson tasks class
 """
-from math import exp, factorial
 
 
 class Poisson:
@@ -27,4 +26,8 @@ class Poisson:
         if k < 0:
             return 0
         mean = self.lambtha
-        return (exp(-mean) * mean ** k) / factorial(k)
+        factorial = 1
+        for i in range(1, k + 1):
+            factorial *= i
+        e = 2.7182818285
+        return (e ** (-mean) * mean ** k) / factorial
