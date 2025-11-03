@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+"""A script that plots x ↦ y as a line graph"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-"""A script that plots x ↦ y as a line graph"""
 
 
 def change_scale():
+    """A function that plots x ↦ y as a line graph"""
     x = np.arange(0, 28651, 5730)
     r = np.log(0.5)
     t = 5730

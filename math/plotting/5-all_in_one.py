@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+"""A script that plots all 5 previous graphs in one figure"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-"""A script that plots all 5 previous graphs in one figure"""
 
 
 def all_in_one():
+    """A function that plots all 5 previous graphs in one figure"""
     y0 = np.arange(0, 11) ** 3
 
     mean = [69, 0]

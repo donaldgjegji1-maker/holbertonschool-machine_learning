@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+"""A script that plots x ↦ y1 and x ↦ y2 as line graphs"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-"""A script that plots x ↦ y1 and x ↦ y2 as line graphs"""
 
 
 def two():
+    """A function that plots x ↦ y1 and x ↦ y2 as line graphs"""
     x = np.arange(0, 21000, 1000)
     r = np.log(0.5)
     t1 = 5730
