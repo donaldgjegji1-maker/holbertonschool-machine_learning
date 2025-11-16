@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import requests
-from datetime import datetime
 """
 A script that displays the first launch with these information
 """
+import requests
+from datetime import datetime
 
 
 def get_first_upcoming_launch():

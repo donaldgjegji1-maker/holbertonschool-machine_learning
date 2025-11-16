@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import requests
 """
 A script that returns the list of ships that
 can hold a given number of passengers
 """
+import requests
 
 
 def availableShips(passengerCount):

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import requests
-import sys
-from datetime import datetime, timedelta
 """
 A script that prints the location of a specific user
 """
+import requests
+import sys
+from datetime import datetime, timedelta
 
 
 def get_user_location(api_url):

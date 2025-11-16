@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import requests
-from collections import defaultdict
 """
 A script that displays the number of launches per rocket
 """
+import requests
+from collections import defaultdict
 
 
 def get_launches_per_rocket():

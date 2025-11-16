@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import requests
 """
 A script that returns a list of names of the home
 planets of all sentient species.
 """
+import requests
 
 
 def sentientPlanets():
