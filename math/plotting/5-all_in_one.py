@@ -41,7 +41,7 @@ def all_in_one():
     # Plot 2: Scatter plot
     plt.subplot(3, 2, 2)
     plt.scatter(x1, y1, c='magenta')
-    plt.title("Men's Height vs Weight", fontsize='x-small')
+    plt.title("Men's Height vs Weight", fontsize='small')
     plt.xlabel("Height (in)")
     plt.ylabel("Weight (lbs)")
 
@@ -50,7 +50,7 @@ def all_in_one():
     plt.plot(x2, y2)
     plt.yscale('log')
 
-    plt.title("Exponential Decay of C-14", fontsize='x-small')
+    plt.title("Exponential Decay of C-14", fontsize='small')
     plt.xlabel("Time (years)")
     plt.ylabel("Fraction Remaining")
     plt.xlim(x2[0], x2[-1])
@@ -59,7 +59,7 @@ def all_in_one():
     plt.subplot(3, 2, 4)
     plt.plot(x3, y31, c='r', linestyle='dashed', label='C-14')
     plt.plot(x3, y32, c='g', label='Ra-226')
-    plt.title("Exponential Decay of Radioactive Elements", fontsize='x-small')
+    plt.title("Exponential Decay of Radioactive Elements", fontsize='small')
     plt.xlabel("Time (years)")
     plt.ylabel("Fraction Remaining")
     plt.xlim(0, 20000)
