@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Contains the function `initialize` to set up initial
+centroids for K-means clustering using a multivariate uniform distribution.
+"""
+
 import numpy as np
 
 
