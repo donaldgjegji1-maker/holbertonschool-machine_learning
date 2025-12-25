@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 PCA on a dataset
 """
@@ -30,14 +31,7 @@ def pca(X, var=0.95):
 
     # Calculate cumulative variance
     cumulative_var = np.cumsum(var_ratios)
-
     # Find number of components needed
     nd = np.argmax(cumulative_var >= var) + 1
-
-    # If the next component has significant variance, include it
-    if nd < len(var_ratios) and var_ratios[nd] > 1e-10:
-        if cumulative_var[nd] >= 0.9999:
-            nd += 1
-
     # Return weight matrix
     return vt[:nd].T
