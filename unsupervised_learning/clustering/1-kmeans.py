@@ -36,37 +36,30 @@ def kmeans(X, k, iterations=1000):
     # FIRST use of np.random.uniform: initialize centroids
     C = np.random.uniform(low=min_vals, high=max_vals, size=(k, d))
     
-    # SECOND use of np.random.uniform: pre-generate random centroids
-    # for potential empty cluster reinitialization
-    random_centroids = np.random.uniform(low=min_vals, high=max_vals, 
-                                         size=(k * iterations, d))
-    random_idx = 0
-    
-    # Main algorithm
+    # Main algorithm (LOOP 1)
     for _ in range(iterations):
         C_prev = np.copy(C)
         
-        # Assign points to centroids (vectorized)
+        # Assign points to centroids (vectorized - no loop)
         diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]
         distances = np.sqrt(np.sum(diff ** 2, axis=2))
         clss = np.argmin(distances, axis=1)
         
-        # Update centroids (ONE loop)
+        # Update centroids (LOOP 2)
         for j in range(k):
             cluster_points = X[clss == j]
             
             if len(cluster_points) > 0:
                 C[j] = cluster_points.mean(axis=0)
             else:
-                # Use next random centroid from pre-generated pool
-                C[j] = random_centroids[random_idx]
-                random_idx += 1
+                # SECOND use of np.random.uniform: reinitialize empty cluster
+                C[j] = np.random.uniform(low=min_vals, high=max_vals, size=d)
         
         # Check convergence
         if np.allclose(C_prev, C, atol=1e-8):
             break
     
-    # Final assignment
+    # Final assignment (vectorized - no loop)
     diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]
     distances = np.sqrt(np.sum(diff ** 2, axis=2))
     clss = np.argmin(distances, axis=1)
