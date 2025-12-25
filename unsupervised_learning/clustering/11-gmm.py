@@ -9,11 +9,11 @@ import sklearn.mixture
 def gmm(X, k):
     """
     Calculate Gaussian Mixture Model using sklearn.
-    
+
     Args:
         X: numpy.ndarray of shape (n, d) containing the dataset
         k: integer, number of clusters
-        
+
     Returns:
         tuple: (pi, m, S, clss, bic) where:
             pi: numpy.ndarray of shape (k,) containing cluster priors
@@ -25,22 +25,21 @@ def gmm(X, k):
     # Initialize and fit GMM
     model = sklearn.mixture.GaussianMixture(
         n_components=k,
-        covariance_type='full',
-        random_state=0
+        covariance_type='full'
     )
-    
+
     # Fit the model
     model.fit(X)
-    
+
     # Get parameters
-    pi = model.weights_          # Mixing coefficients (priors)
-    m = model.means_             # Means of each Gaussian component
-    S = model.covariances_       # Covariance matrices of each component
-    
-    # Get cluster assignments (hard clustering)
+    pi = model.weights_
+    m = model.means_
+    S = model.covariances_
+
+    # Get cluster assignments
     clss = model.predict(X)
-    
+
     # Calculate BIC
     bic = model.bic(X)
-    
+
     return pi, m, S, clss, bic
