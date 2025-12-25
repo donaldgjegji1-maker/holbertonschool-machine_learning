@@ -23,12 +23,15 @@ def kmeans(X, k, iterations=1000):
     # Input validation
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         return None, None
-    if not isinstance(k, int) or k <= 0 or k >= X.shape[0]:
+    if not isinstance(k, int) or k <= 0:
         return None, None
     if not isinstance(iterations, int) or iterations <= 0:
         return None, None
 
     n, d = X.shape
+    
+    if k > n:
+        return None, None
 
     # Get data bounds
     min_vals = X.min(axis=0)
