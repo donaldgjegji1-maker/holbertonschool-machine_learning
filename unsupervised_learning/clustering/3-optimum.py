@@ -1,74 +1,72 @@
 #!/usr/bin/env python3
 """
-Optimum K determination module for K-means clustering
+Performs K-means on a dataset
 """
 
 import numpy as np
 
 
-def optimum_k(X, kmin=1, kmax=None, iterations=1000):
+def kmeans(X, k, iterations=1000):
     """
-    Determine the optimum number of clusters by analyzing variance differences.
+    Performs K-means clustering on a dataset.
 
     Args:
         X: numpy.ndarray of shape (n, d) containing the dataset
-        kmin: positive integer, minimum number of clusters to check
-        kmax: positive integer, maximum number of clusters to check
-        iterations: positive integer, maximum iterations for K-means
+        k: positive integer, number of clusters
+        iterations: positive integer, maximum number of iterations
 
     Returns:
-        tuple: (results, d_vars) where:
-            results: list of K-means outputs for each cluster size
-            d_vars: list of variance differences from kmin
-        or (None, None) on failure
+        C, clss or None, None on failure
+        C: numpy.ndarray of shape (k, d) containing centroid means
+        clss: numpy.ndarray of shape (n,) containing cluster indices
     """
     # Input validation
-    if not isinstance(X, np.ndarray) or len(X.shape) != 2:
+    if not isinstance(X, np.ndarray) or X.ndim != 2:
         return None, None
+    if not isinstance(k, int) or k <= 0:
+        return None, None
+
     n, d = X.shape
-    if n == 0 or d == 0:
+
+    if k > n:
         return None, None
-    if not isinstance(kmin, int) or kmin <= 0 or kmin >= n:
-        return None, None
-    if kmax is None:
-        kmax = n
-    if not isinstance(kmax, int) or kmax <= kmin or kmax > n:
-        return None, None
+
     if not isinstance(iterations, int) or iterations <= 0:
         return None, None
 
-    # Import required modules
-    kmeans = __import__('1-kmeans').kmeans
-    variance = __import__('2-variance').variance
+    # Get data bounds
+    min_vals = X.min(axis=0)
+    max_vals = X.max(axis=0)
 
-    results = []
-    d_vars = []
-    base_variance = None
+    # FIRST use of np.random.uniform: initialize centroids
+    C = np.random.uniform(low=min_vals, high=max_vals, size=(k, d))
 
-    # Single loop to process all k values
-    for k in range(kmin, kmax + 1):
-        # Run K-means
-        C, clss = kmeans(X, k, iterations)
+    # Main algorithm (LOOP 1)
+    for _ in range(iterations):
+        C_prev = np.copy(C)
 
-        # If kmeans fails, return None, None
-        if C is None or clss is None:
-            return None, None
+        # Assign points to centroids (vectorized - no loop)
+        diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]
+        distances = np.sqrt(np.sum(diff ** 2, axis=2))
+        clss = np.argmin(distances, axis=1)
 
-        # Calculate variance
-        var = variance(X, C)
+        # Update centroids (LOOP 2)
+        for j in range(k):
+            cluster_points = X[clss == j]
 
-        # If variance calculation fails, return None, None
-        if var is None:
-            return None, None
+            if len(cluster_points) > 0:
+                C[j] = cluster_points.mean(axis=0)
+            else:
+                # SECOND use of np.random.uniform: reinitialize empty cluster
+                C[j] = np.random.uniform(low=min_vals, high=max_vals, size=d)
 
-        # Store results
-        results.append((C, clss))
+        # Check convergence
+        if np.allclose(C_prev, C, atol=1e-8):
+            break
 
-        # Calculate variance difference
-        if k == kmin:
-            base_variance = var
-            d_vars.append(0.0)
-        else:
-            d_vars.append(base_variance - var)
+    # Final assignment (vectorized - no loop)
+    diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]
+    distances = np.sqrt(np.sum(diff ** 2, axis=2))
+    clss = np.argmin(distances, axis=1)
 
-    return results, d_vars
+    return C, clss
