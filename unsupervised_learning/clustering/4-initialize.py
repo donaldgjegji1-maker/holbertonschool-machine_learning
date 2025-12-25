@@ -22,7 +22,7 @@ def initialize(X, k):
             S: numpy.ndarray of shape (k, d, d) with covariance matrices
         or (None, None, None) on failure
     """
-    # Input validation
+
     if not isinstance(X, np.ndarray) or len(X.shape) != 2:
         return None, None, None
 
@@ -35,7 +35,6 @@ def initialize(X, k):
         return None, None, None
 
     try:
-        # Initialize priors: equal probability for each cluster
         pi = np.full(k, 1.0 / k)
 
         # Get centroids from K-means
