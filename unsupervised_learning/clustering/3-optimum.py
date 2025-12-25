@@ -9,13 +9,13 @@ import numpy as np
 def optimum_k(X, kmin=1, kmax=None, iterations=1000):
     """
     Determine the optimum number of clusters by analyzing variance differences.
-    
+
     Args:
         X: numpy.ndarray of shape (n, d) containing the dataset
         kmin: positive integer, minimum number of clusters to check
         kmax: positive integer, maximum number of clusters to check
         iterations: positive integer, maximum iterations for K-means
-        
+
     Returns:
         tuple: (results, d_vars) where:
             results: list of K-means outputs for each cluster size
@@ -36,31 +36,39 @@ def optimum_k(X, kmin=1, kmax=None, iterations=1000):
         return None, None
     if not isinstance(iterations, int) or iterations <= 0:
         return None, None
-    
+
     # Import required modules
     kmeans = __import__('1-kmeans').kmeans
     variance = __import__('2-variance').variance
-    
+
     results = []
     d_vars = []
     base_variance = None
-    
+
     # Single loop to process all k values
     for k in range(kmin, kmax + 1):
         # Run K-means
         C, clss = kmeans(X, k, iterations)
-        
+
+        # If kmeans fails, return None, None
+        if C is None or clss is None:
+            return None, None
+
         # Calculate variance
         var = variance(X, C)
-        
+
+        # If variance calculation fails, return None, None
+        if var is None:
+            return None, None
+
         # Store results
         results.append((C, clss))
-        
+
         # Calculate variance difference
         if k == kmin:
             base_variance = var
             d_vars.append(0.0)
         else:
             d_vars.append(base_variance - var)
-    
+
     return results, d_vars
