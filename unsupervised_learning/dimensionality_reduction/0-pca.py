@@ -9,41 +9,35 @@ import numpy as np
 def pca(X, var=0.95):
     """
     Performs PCA on a dataset.
-    
+
     Args:
         X: numpy.ndarray of shape (n, d) containing the dataset
            where n is the number of data points and d is the number
            of dimensions. All dimensions have a mean of 0.
         var: fraction of the variance that the PCA transformation
              should maintain
-    
+
     Returns:
         W: numpy.ndarray of shape (d, nd) containing the weights matrix
            that maintains var fraction of X's original variance, where
            nd is the new dimensionality
     """
-    # Compute the SVD of X
-    u, s, vt = np.linalg.svd(X)
-    
-    # Calculate the variance explained by each component
-    variance = s ** 2
-    
-    # Calculate cumulative variance ratio
-    total_variance = np.sum(variance)
-    cumulative_variance_ratio = np.cumsum(variance) / total_variance
-    
-    # Find the number of components needed to maintain var fraction
-    # Get the index of the first component where cumulative variance >= var
-    for i in range(len(cumulative_variance_ratio)):
-        if cumulative_variance_ratio[i] >= var:
-            nd = i + 1
-            break
-    else:
-        # If we never reach var, use all components
-        nd = len(s)
-    
-    # The weight matrix W consists of the first nd principal components
-    # W should have shape (d, nd)
-    W = vt.T[:, :nd]
-    
-    return W
+    # Compute SVD
+    _, s, vt = np.linalg.svd(X)
+
+    # Calculate variance ratios
+    var_ratios = (s ** 2) / np.sum(s ** 2)
+
+    # Calculate cumulative variance
+    cumulative_var = np.cumsum(var_ratios)
+
+    # Find number of components needed
+    nd = np.argmax(cumulative_var >= var) + 1
+
+    # If the next component has significant variance, include it
+    if nd < len(var_ratios) and var_ratios[nd] > 1e-10:
+        if cumulative_var[nd] >= 0.9999:
+            nd += 1
+
+    # Return weight matrix
+    return vt[:nd].T
