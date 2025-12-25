@@ -1,51 +1,55 @@
 #!/usr/bin/env python3
 """
-Bayesian Information Criterion for Gaussian Mixture Models
+Bayesian Information Criterion GMM
 """
 
 import numpy as np
+expectation_maximization = __import__('8-EM').expectation_maximization
 
 
 def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
     """
-    Find the best number of clusters using Bayesian Information Criterion.
+    Find the best number of clusters using BIC.
 
     Args:
         X: numpy.ndarray of shape (n, d) containing the dataset
         kmin: positive integer, minimum number of clusters to check
         kmax: positive integer, maximum number of clusters to check
-        iterations: positive integer, max iterations for EM algorithm
-        tol: non-negative float, tolerance for EM algorithm
-        verbose: boolean, whether EM should print progress
+        iterations: positive integer, max iterations
+        tol: non-negative float, tolerance
+        verbose: boolean, whether to print progress
 
     Returns:
         tuple: (best_k, best_result, l, b) where:
-            best_k: best value for k based on BIC
-            best_result: tuple (pi, m, S) for best_k
-            l: numpy.ndarray of log likelihoods for each k
-            b: numpy.ndarray of BIC values for each k
+            best_k: best value based on BIC
+            best_result: tuple (pi, m, S)
+            l: numpy.ndarray of log likelihoods
+            b: numpy.ndarray of BIC values
         or (None, None, None, None) on failure
     """
     # Validate inputs
-    if (not all([
-        isinstance(X, np.ndarray), len(X.shape) == 2,
-        isinstance(kmin, int), kmin > 0, kmin <= X.shape[0],
-        isinstance(iterations, int), iterations > 0,
-        isinstance(tol, (int, float)), tol >= 0,
-        isinstance(verbose, bool)
-    ])):
+    if not isinstance(X, np.ndarray) or len(X.shape) != 2:
+        return None, None, None, None
+    if not isinstance(kmin, int) or kmin < 1:
+        return None, None, None, None
+    if not isinstance(iterations, int) or iterations < 1:
+        return None, None, None, None
+    if not isinstance(tol, (int, float)) or tol < 0:
+        return None, None, None, None
+    if not isinstance(verbose, bool):
         return None, None, None, None
 
     n, d = X.shape
 
+    if kmin > n:
+        return None, None, None, None
+
     # Set kmax if None
     if kmax is None:
         kmax = n
-    elif not isinstance(kmax, int) or kmax < kmin or kmax > n:
-        return None, None, None, None
 
-    # Import EM
-    expectation_maximization = __import__('8-EM').expectation_maximization
+    if not isinstance(kmax, int) or kmax < kmin or kmax > n:
+        return None, None, None, None
 
     # Initialize results
     k_range = range(kmin, kmax + 1)
@@ -53,7 +57,6 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
 
     log_liks = np.zeros(num_ks)
     bic_vals = np.zeros(num_ks)
-    all_results = []
 
     best_k_val = None
     best_result_val = None
@@ -62,24 +65,27 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
     # Single loop over k values
     for idx, k in enumerate(k_range):
         # Run EM
-        pi, m, S, _, lik = expectation_maximization(
+        pi, m, S, _, log_l = expectation_maximization(
             X, k, iterations, tol, verbose
         )
 
-        if pi is None:  # EM failed
+        if pi is None:
             return None, None, None, None
 
-        # Store results
-        all_results.append((pi, m, S))
-        log_liks[idx] = lik
+        # Store log likelihood
+        log_liks[idx] = log_l
 
         # Calculate number of parameters
+        # pi: k-1 (since they sum to 1)
+        # m: k*d (mean vectors)
+        # S: k*d*(d+1)/2 (symmetric covariance matrices)
         p = (k - 1) + (k * d) + (k * d * (d + 1) // 2)
 
-        # Calculate BIC
-        bic = p * np.log(n) - 2 * lik
+        # Calculate BIC: p * ln(n) - 2 * l
+        bic = p * np.log(n) - 2 * log_l
         bic_vals[idx] = bic
 
+        # Track best result (lowest BIC)
         if bic < best_bic:
             best_bic = bic
             best_k_val = k
