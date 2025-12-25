@@ -27,6 +27,8 @@ def variance(X, C):
         return None
     if X.ndim != 2 or C.ndim != 2:
         return None
+    if X.shape[1] != C.shape[1]:  # Check if dimensions match
+        return None
 
     # Compute squared distances of each point to each centroid
     diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]  # shape (n, k, d)
