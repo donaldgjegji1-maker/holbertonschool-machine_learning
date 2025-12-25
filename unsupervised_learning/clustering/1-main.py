@@ -17,7 +17,4 @@ if __name__ == "__main__":
 
     C, clss = kmeans(X, 5)
 
-    print("Centroids:")
     print(C)
-    print("\nCluster assignments shape:", clss.shape)
-    print("Unique clusters:", np.unique(clss))
