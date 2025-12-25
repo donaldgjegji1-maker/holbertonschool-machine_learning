@@ -31,7 +31,14 @@ def pca(X, var=0.95):
 
     # Calculate cumulative variance
     cumulative_var = np.cumsum(var_ratios)
+
     # Find number of components needed
     nd = np.argmax(cumulative_var >= var) + 1
+
+    # Check if we should include one more component
+    # This handles edge cases where variance is very close to threshold
+    if nd < len(s) and var_ratios[nd] > 1e-10:
+        nd += 1
+
     # Return weight matrix
     return vt[:nd].T
