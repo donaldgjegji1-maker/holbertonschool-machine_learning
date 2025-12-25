@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import numpy as np
 BIC = __import__('9-BIC').BIC
 
