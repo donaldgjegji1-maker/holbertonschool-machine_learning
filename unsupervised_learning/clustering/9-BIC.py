@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Bayesian Information Criterion GMM
 """
