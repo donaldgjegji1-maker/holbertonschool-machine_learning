@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+Performs K-means on a dataset
+"""
+
 import numpy as np
 
 def kmeans(X, k, iterations=1000):
@@ -25,43 +29,45 @@ def kmeans(X, k, iterations=1000):
     
     n, d = X.shape
     
-    # First use of np.random.uniform: initialize centroids
-    # Get min and max for each dimension
+    # Get data bounds
     min_vals = X.min(axis=0)
     max_vals = X.max(axis=0)
     
-    # Initialize centroids uniformly within data bounds
+    # FIRST use of np.random.uniform: initialize centroids
     C = np.random.uniform(low=min_vals, high=max_vals, size=(k, d))
     
-    # Store previous centroids to check for convergence
-    prev_C = np.copy(C)
+    # SECOND use of np.random.uniform: create single set of random values
+    # that we'll cycle through if needed
+    random_values = np.random.uniform(low=min_vals, high=max_vals, size=(k * iterations, d))
+    random_idx = 0
     
-    for i in range(iterations):
-        # Assign each data point to nearest centroid (E-step)
-        # Using broadcasting to compute distances
-        distances = np.linalg.norm(X[:, np.newaxis, :] - C[np.newaxis, :, :], axis=2)
+    # Main algorithm
+    for _ in range(iterations):
+        C_prev = np.copy(C)
+        
+        # Assign points to centroids (vectorized)
+        diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]
+        distances = np.sqrt(np.sum(diff ** 2, axis=2))
         clss = np.argmin(distances, axis=1)
         
-        # Update centroids (M-step)
+        # Update centroids (ONE loop)
         for j in range(k):
-            # Get points assigned to cluster j
             cluster_points = X[clss == j]
             
             if len(cluster_points) > 0:
-                # Update centroid as mean of assigned points
                 C[j] = cluster_points.mean(axis=0)
             else:
-                # Reinitialize empty cluster centroid
-                C[j] = np.random.uniform(low=min_vals, high=max_vals)
+                # Use next random value from our pre-generated pool
+                C[j] = random_values[random_idx % len(random_values)]
+                random_idx += 1
         
-        # Check for convergence
-        if np.allclose(prev_C, C):
+        # Check convergence
+        if np.allclose(C_prev, C, atol=1e-8):
             break
-            
-        prev_C = np.copy(C)
     
-    # One final assignment
-    distances = np.linalg.norm(X[:, np.newaxis, :] - C[np.newaxis, :, :], axis=2)
+    # Final assignment
+    diff = X[:, np.newaxis, :] - C[np.newaxis, :, :]
+    distances = np.sqrt(np.sum(diff ** 2, axis=2))
     clss = np.argmin(distances, axis=1)
     
     return C, clss
