@@ -36,6 +36,12 @@ def kmeans(X, k, iterations=1000):
     # FIRST use of np.random.uniform: initialize centroids
     C = np.random.uniform(low=min_vals, high=max_vals, size=(k, d))
     
+    # SECOND use of np.random.uniform: pre-generate random centroids
+    # for potential empty cluster reinitialization
+    random_centroids = np.random.uniform(low=min_vals, high=max_vals, 
+                                         size=(k * iterations, d))
+    random_idx = 0
+    
     # Main algorithm
     for _ in range(iterations):
         C_prev = np.copy(C)
@@ -45,11 +51,6 @@ def kmeans(X, k, iterations=1000):
         distances = np.sqrt(np.sum(diff ** 2, axis=2))
         clss = np.argmin(distances, axis=1)
         
-        # SECOND use of np.random.uniform: for reinitializing empty clusters
-        # Generate k random points (one per potential empty cluster)
-        random_centroids = np.random.uniform(low=min_vals, high=max_vals, size=(k, d))
-        random_idx = 0
-        
         # Update centroids (ONE loop)
         for j in range(k):
             cluster_points = X[clss == j]
@@ -57,7 +58,7 @@ def kmeans(X, k, iterations=1000):
             if len(cluster_points) > 0:
                 C[j] = cluster_points.mean(axis=0)
             else:
-                # Use next random centroid from this iteration's batch
+                # Use next random centroid from pre-generated pool
                 C[j] = random_centroids[random_idx]
                 random_idx += 1
         
