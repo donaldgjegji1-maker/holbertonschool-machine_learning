@@ -27,11 +27,6 @@ def pca(X, var=0.95):
     # where U is (n, n), S is (min(n,d),), Vt is (d, d)
     u, s, vt = np.linalg.svd(X)
 
-    # The principal components are the rows of Vt (columns of V)
-    # V has shape (d, d) and contains the eigenvectors
-    # We want V as columns, so we transpose Vt
-    # vt has shape (d, d), so vt.T gives us V
-
     # Calculate the variance explained by each component
     # Variance is proportional to the square of singular values
     variance = s ** 2
@@ -42,7 +37,14 @@ def pca(X, var=0.95):
 
     # Find the number of components needed to maintain var fraction
     # We want the first nd components where cumulative variance >= var
-    nd = np.argmax(cumulative_variance_ratio >= var) + 1
+    nd = np.where(cumulative_variance_ratio >= var)[0]
+
+    if len(nd) == 0:
+        # If no single component reaches the threshold, use all components
+        nd = len(s)
+    else:
+        # Take the first index where we meet or exceed the threshold
+        nd = nd[0] + 1
 
     # The weight matrix W consists of the first nd principal components
     # Principal components are the rows of Vt (or columns of V)
