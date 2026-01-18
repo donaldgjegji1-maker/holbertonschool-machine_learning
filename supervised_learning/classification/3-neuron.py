@@ -22,18 +22,30 @@ class Neuron:
 
     @property
     def W(self):
+        """
+        The weights vector for the neuron
+        """
         return self.__W
 
     @property
     def b(self):
+        """
+        The bias for the neuron
+        """
         return self.__b
 
     @property
     def A(self):
+        """
+        The activated output of the neuron (prediction)
+        """
         return self.__A
 
     @A.setter
     def A(self, value):
+        """
+        Setter for prediction attribute
+        """
         self.__A = value
 
     def forward_prop(self, X):
