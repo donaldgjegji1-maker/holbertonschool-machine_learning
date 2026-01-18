@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
-Class that defines a single neuron performing binary classification
+Module that defines a single neuron performing binary classification
 """
 
 import numpy as np
 
 
 class Neuron:
+    """
+    A class that defines a single neuron performing binary classification
+    """
+
     def __init__(self, nx):
         """
         nx is the number of input features to the neuron
