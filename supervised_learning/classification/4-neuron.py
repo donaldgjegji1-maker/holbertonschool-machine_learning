@@ -45,13 +45,6 @@ class Neuron:
         """
         return self.__A
 
-    @A.setter
-    def A(self, value):
-        """
-        Setter for prediction attribute
-        """
-        self.__A = value
-
     def forward_prop(self, X):
         """
         Calculates the forward propagation of the neuron
@@ -74,8 +67,7 @@ class Neuron:
         """
         Evaluates the neuron’s predictions
         """
-
-        self.__A = self.forward_prop(X)
+        A = self.forward_prop(X)
         cost = self.cost(Y, A)
         result = np.where(A >= 0.5, 1, 0)
         return result, cost
