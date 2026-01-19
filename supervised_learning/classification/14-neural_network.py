@@ -8,7 +8,19 @@ import numpy as np
 
 
 class NeuralNetwork:
+    """
+    A class that defines a neural network with one hidden layer
+    performing binary classification
+    """
+
     def __init__(self, nx, nodes):
+        """
+        Initialize the neural network
+
+        nx: number of input features
+        nodes: number of nodes in the hidden layer
+        """
+
         if not isinstance(nx, int):
             raise TypeError("nx must be an integer")
         if nx < 1:
@@ -27,29 +39,38 @@ class NeuralNetwork:
 
     @property
     def W1(self):
+        """Getter for hidden layer weights"""
         return self.__W1
 
     @property
     def b1(self):
+        """Getter for hidden layer bias"""
         return self.__b1
 
     @property
     def A1(self):
+        """Getter for hidden layer activated output"""
         return self.__A1
 
     @property
     def W2(self):
+        """Getter for output layer weights"""
         return self.__W2
 
     @property
     def b2(self):
+        """Getter for output layer bias"""
         return self.__b2
 
     @property
     def A2(self):
+        """Getter for output layer activated output"""
         return self.__A2
 
     def forward_prop(self, X):
+        """
+        Calculates the forward propagation of the neural network
+        """
         Z1 = np.dot(self.__W1, X) + self.__b1
         self.__A1 = 1 / (1 + np.exp(-Z1))
         Z2 = np.dot(self.__W2, self.__A1) + self.__b2
@@ -57,17 +78,26 @@ class NeuralNetwork:
         return self.__A1, self.__A2
 
     def cost(self, Y, A):
+        """
+        Calculates the cost of the model using logistic regression
+        """
         m = Y.shape[1]
         cost = -(1/m) * np.sum(Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A))
         return cost
 
     def evaluate(self, X, Y):
+        """
+        Evaluates the neural network's predictions
+        """
         self.forward_prop(X)
         predictions = np.where(self.__A2 >= 0.5, 1, 0)
         cost = self.cost(Y, self.__A2)
         return predictions, cost
 
     def gradient_descent(self, X, Y, A1, A2, alpha=0.05):
+        """
+        Calculates one pass of gradient descent on the neural network
+        """
         m = Y.shape[1]
 
         # Backward propagation
@@ -86,7 +116,9 @@ class NeuralNetwork:
         self.__b1 -= alpha * db1
 
     def train(self, X, Y, iterations=5000, alpha=0.05):
-        # Input validation
+        """
+        Trains the neural network with optional verbose output and graphing
+        """
         if not isinstance(iterations, int):
             raise TypeError("iterations must be an integer")
         if iterations < 1:
@@ -96,10 +128,8 @@ class NeuralNetwork:
         if alpha <= 0:
             raise ValueError("alpha must be positive")
 
-        # Training loop
         for i in range(iterations):
             A1, A2 = self.forward_prop(X)
             self.gradient_descent(X, Y, A1, A2, alpha)
 
-        # Return final evaluation
         return self.evaluate(X, Y)
