@@ -108,50 +108,23 @@ class DeepNeuralNetwork:
 
     def gradient_descent(self, Y, cache, alpha=0.05):
         """
-        Perform one pass of gradient descent on the neural network
+        Calculates one pass of gradient descent on the neural network
         """
         m = Y.shape[1]
-        dZ = {}
-        dW = {}
-        db = {}
+        weights_copy = self.__weights.copy()
+        A_L = cache[f'A{self.__L}']
+        dZ = A_L - Y
 
-        for layer_idx in range(self.__L, 0, -1):
-            A_current = cache['A' + str(layer_idx)]
-            A_prev = cache['A' + str(layer_idx - 1)]
+        for i in range(self.__L, 0, -1):
+            A_prev = cache[f'A{i-1}']
 
-            if layer_idx == self.__L:
-                dZ[str(layer_idx)] = A_current - Y
-            else:
-                W_next = self.__weights['W' + str(layer_idx + 1)]
-                dZ_next = dZ[str(layer_idx + 1)]
-                dZ[str(layer_idx)] = np.dot(W_next.T, dZ_next) * \
-                    A_current * (1 - A_current)
+            dW = np.matmul(dZ, A_prev.T) / m
+            db = np.sum(dZ, axis=1, keepdims=True) / m
 
-            dW[str(layer_idx)] = (1 / m) * np.dot(
-                dZ[str(layer_idx)], A_prev.T
-            )
-            db[str(layer_idx)] = (1 / m) * np.sum(
-                dZ[str(layer_idx)], axis=1, keepdims=True
-            )
-            self.__weights['W' + str(layer_idx)] -= alpha * dW[str(layer_idx)]
-            self.__weights['b' + str(layer_idx)] -= alpha * db[str(layer_idx)]
+            self.__weights[f'W{i}'] = weights_copy[f'W{i}'] - alpha * dW
+            self.__weights[f'b{i}'] = weights_copy[f'b{i}'] - alpha * db
 
-    def train(self, X, Y, iterations=5000, alpha=0.05):
-        """
-        Train the deep neural network
-        """
-        if not isinstance(iterations, int):
-            raise TypeError("iterations must be an integer")
-        if iterations < 1:
-            raise ValueError("iterations must be a positive integer")
-
-        if not isinstance(alpha, float):
-            raise TypeError("alpha must be a float")
-        if alpha <= 0:
-            raise ValueError("alpha must be positive")
-
-        for i in range(iterations):
-            A, cache = self.forward_prop(X)
-            self.gradient_descent(Y, cache, alpha)
-
-        return self.evaluate(X, Y)
+            if i > 1:
+                W = weights_copy[f'W{i}']
+                A_prev = cache[f'A{i-1}']
+                dZ = np.matmul(W.T, dZ) * A_prev * (1 - A_prev)
