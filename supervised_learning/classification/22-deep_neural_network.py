@@ -118,6 +118,7 @@ class DeepNeuralNetwork:
         for layer_idx in range(self.__L, 0, -1):
             A_current = cache['A' + str(layer_idx)]
             A_prev = cache['A' + str(layer_idx - 1)]
+
             if layer_idx == self.__L:
                 dZ[str(layer_idx)] = A_current - Y
             else:
@@ -132,8 +133,6 @@ class DeepNeuralNetwork:
             db[str(layer_idx)] = (1 / m) * np.sum(
                 dZ[str(layer_idx)], axis=1, keepdims=True
             )
-
-        for layer_idx in range(1, self.__L + 1):
             self.__weights['W' + str(layer_idx)] -= alpha * dW[str(layer_idx)]
             self.__weights['b' + str(layer_idx)] -= alpha * db[str(layer_idx)]
 
