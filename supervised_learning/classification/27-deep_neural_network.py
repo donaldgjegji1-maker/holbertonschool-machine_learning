@@ -115,36 +115,26 @@ class DeepNeuralNetwork:
 
     def gradient_descent(self, Y, cache, alpha=0.05):
         """
-        Perform one pass of gradient descent on the neural network
+        Calculates one pass of gradient descent on the neural network
         """
         m = Y.shape[1]
-        dZ = {}
-        dW = {}
-        db = {}
+        weights_copy = self.__weights.copy()
+        A_L = cache[f'A{self.__L}']
+        dZ = A_L - Y
 
-        for layer_idx in range(self.__L, 0, -1):
-            A_current = cache['A' + str(layer_idx)]
-            A_prev = cache['A' + str(layer_idx - 1)]
+        for i in range(self.__L, 0, -1):
+            A_prev = cache[f'A{i-1}']
 
-            if layer_idx == self.__L:
-                # For softmax output layer with cross-entropy loss
-                # dZ = A - Y
-                dZ[str(layer_idx)] = A_current - Y
-            else:
-                # For sigmoid hidden layers
-                W_next = self.__weights['W' + str(layer_idx + 1)]
-                dZ_next = dZ[str(layer_idx + 1)]
-                dZ[str(layer_idx)] = np.dot(W_next.T, dZ_next) * \
-                    A_current * (1 - A_current)
+            dW = np.matmul(dZ, A_prev.T) / m
+            db = np.sum(dZ, axis=1, keepdims=True) / m
 
-            dW[str(layer_idx)] = (1 / m) * np.dot(
-                dZ[str(layer_idx)], A_prev.T
-            )
-            db[str(layer_idx)] = (1 / m) * np.sum(
-                dZ[str(layer_idx)], axis=1, keepdims=True
-            )
-            self.__weights['W' + str(layer_idx)] -= alpha * dW[str(layer_idx)]
-            self.__weights['b' + str(layer_idx)] -= alpha * db[str(layer_idx)]
+            self.__weights[f'W{i}'] = weights_copy[f'W{i}'] - alpha * dW
+            self.__weights[f'b{i}'] = weights_copy[f'b{i}'] - alpha * db
+
+            if i > 1:
+                W = weights_copy[f'W{i}']
+                A_prev = cache[f'A{i-1}']
+                dZ = np.matmul(W.T, dZ) * A_prev * (1 - A_prev)
 
     def train(self, X, Y, iterations=5000, alpha=0.05,
               verbose=True, graph=True, step=100):
