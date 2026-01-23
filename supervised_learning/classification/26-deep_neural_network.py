@@ -4,6 +4,7 @@ Module that defines a deep neural network performing binary classification
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 import pickle
 
 
@@ -191,7 +192,6 @@ class DeepNeuralNetwork:
                     print(f"Cost after {i} iterations: {cost}")
 
         if graph:
-            import matplotlib.pyplot as plt
             plt.plot(steps, costs, 'b-')
             plt.xlabel('iteration')
             plt.ylabel('cost')
