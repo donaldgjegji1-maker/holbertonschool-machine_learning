@@ -89,17 +89,20 @@ class DeepNeuralNetwork:
             A_prev = self.__cache['A' + str(layer_idx - 1)]
 
             Z = np.dot(W, A_prev) + b
+
+            # Output layer uses softmax, hidden layers use specified activation
             if layer_idx == self.__L:
+                # Softmax activation for output layer
                 exp_Z = np.exp(Z - np.max(Z, axis=0, keepdims=True))
                 A = exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
             else:
+                # Hidden layer activation
                 if self.__activation == 'sig':
                     A = 1 / (1 + np.exp(-Z))
-                else:
+                else:  # tanh
                     A = np.tanh(Z)
 
             self.__cache['A' + str(layer_idx)] = A
-            self.__cache['Z' + str(layer_idx)] = Z
 
         return A, self.__cache
 
@@ -148,7 +151,11 @@ class DeepNeuralNetwork:
             if i > 1:
                 W = weights_copy[f'W{i}']
                 A_prev = cache[f'A{i-1}']
-                dZ = np.matmul(W.T, dZ) * A_prev * (1 - A_prev)
+
+                if self.__activation == 'sig':
+                    dZ = np.matmul(W.T, dZ) * A_prev * (1 - A_prev)
+                else:
+                    dZ = np.matmul(W.T, dZ) * (1 - A_prev * A_prev)
 
     def train(self, X, Y, iterations=5000, alpha=0.05,
               verbose=True, graph=True, step=100):
