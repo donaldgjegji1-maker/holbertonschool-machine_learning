@@ -2,7 +2,7 @@
 """
 Train a model using mini-batch gradient descent with early stopping
 """
-import tensorflow as tf
+import tensorflow.keras as K
 
 
 def train_model(network, data, labels, batch_size, epochs,
@@ -14,7 +14,7 @@ def train_model(network, data, labels, batch_size, epochs,
     callbacks = []
 
     if early_stopping and validation_data is not None:
-        early_stop_callback = tf.keras.callbacks.EarlyStopping(
+        early_stop_callback = K.callbacks.EarlyStopping(
             monitor='val_loss',
             patience=patience,
             verbose=1,

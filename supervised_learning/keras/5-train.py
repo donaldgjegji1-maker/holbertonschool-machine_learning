@@ -2,7 +2,6 @@
 """
 Train a model using mini-batch gradient descent with validation
 """
-import tensorflow as tf
 
 
 def train_model(network, data, labels, batch_size, epochs,
