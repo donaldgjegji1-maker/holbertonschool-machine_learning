@@ -2,7 +2,7 @@
 """
 Convert labels to one-hot encoding
 """
-import numpy as np
+import tensorflow.keras as K
 
 
 def one_hot(labels, classes=None):
@@ -10,8 +10,12 @@ def one_hot(labels, classes=None):
     Convert a label vector into a one-hot matrix
     """
     if classes is None:
-        classes = np.max(labels) + 1
+        max_value = K.backend.max(K.backend.constant(labels))
+        classes = int(K.backend.eval(max_value)) + 1
 
-    one_hot_matrix = np.eye(classes)[labels]
+    result = K.backend.one_hot(
+        K.backend.cast(K.backend.constant(labels), 'int32'),
+        classes
+    )
 
-    return one_hot_matrix
+    return K.backend.eval(result)
