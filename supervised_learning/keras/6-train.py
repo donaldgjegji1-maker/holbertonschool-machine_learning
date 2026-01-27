@@ -17,7 +17,6 @@ def train_model(network, data, labels, batch_size, epochs,
         early_stop_callback = K.callbacks.EarlyStopping(
             monitor='val_loss',
             patience=patience,
-            verbose=1,
             restore_best_weights=True
         )
         callbacks.append(early_stop_callback)
