@@ -10,12 +10,11 @@ def l2_reg_cost(cost, model):
     Calculates the cost of a neural network with L2 regularization
     """
     l2_losses = model.losses
+
     costs = []
 
-    # Start with base cost and add each L2 loss cumulatively
-    cumulative_cost = cost
+    # For each layer, add the base cost + that layer's L2 loss
     for l2_loss in l2_losses:
-        cumulative_cost = cumulative_cost + l2_loss
-        costs.append(cumulative_cost)
+        costs.append(cost + l2_loss)
 
     return tf.stack(costs)
