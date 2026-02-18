@@ -10,7 +10,7 @@ def convolve_grayscale_same(images, kernel):
     Performs a same convolution on grayscale images
     """
     m, h, w = images.shape
-    kh, kw = kernel.Shape
+    kh, kw = kernel.shape
 
     pad_h = kh // 2
     pad_w = kw // 2
