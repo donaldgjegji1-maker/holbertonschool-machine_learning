@@ -8,8 +8,12 @@ def change_contrast(image, lower, upper):
 
     Args:
         image: a 3D tf.Tensor representing the input image
-        lower: a float representing the lower bound of the contrast factor range
-        upper: a float representing the upper bound of the contrast factor range
+
+        lower: a float representing the lower
+        bound of the contrast factor range
+
+        upper: a float representing the upper
+        bound of the contrast factor range
 
     Returns:
         The contrast-adjusted image
