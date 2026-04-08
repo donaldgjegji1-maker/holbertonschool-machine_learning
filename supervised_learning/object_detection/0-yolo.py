@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-   """YOLOv3 object detection class"""
 import tensorflow as tf
 import numpy as np
 
