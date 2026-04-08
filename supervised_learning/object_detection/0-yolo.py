@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+YOLOv3 object detection module
+
+This module provides the Yolo class for object detection
+"""
+
 import tensorflow as tf
 import numpy as np
 
