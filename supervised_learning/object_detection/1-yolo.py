@@ -51,12 +51,16 @@ class Yolo:
         box_class_probs = []
 
         image_height, image_width = image_size
+
         for i, output in enumerate(outputs):
             grid_height, grid_width, anchor_boxes, _ = output.shape
 
             # Extract components
-            box_xy = output[..., 0:2]  # (t_x, t_y)
-            box_wh = output[..., 2:4]  # (t_w, t_h)
+            # The raw outputs from the network
+            tx = output[..., 0]  # center x offset
+            ty = output[..., 1]  # center y offset
+            tw = output[..., 2]  # width offset
+            th = output[..., 3]  # height offset
             box_confidence = output[..., 4:5]  # box confidence
             box_class_probs_i = output[..., 5:]  # class probabilities
 
@@ -64,23 +68,29 @@ class Yolo:
             anchors_i = self.anchors[i]
 
             # Create meshgrid for cell indices
-            col = np.arange(grid_width).reshape(1, grid_width, 1)
-            row = np.arange(grid_height).reshape(grid_height, 1, 1)
+            # For each cell in the grid, we need its x and y indices
+            grid_x = np.arange(grid_width).reshape(1, grid_width, 1)
+            grid_y = np.arange(grid_height).reshape(grid_height, 1, 1)
 
-            # Calculate bounding box coordinates
-            # Center coordinates (cx, cy)
-            cx = (1 / (1 + np.exp(-box_xy[..., 0])) + col) / grid_width
-            cy = (1 / (1 + np.exp(-box_xy[..., 1])) + row) / grid_height
+            # Calculate center coordinates using sigmoid
+            # Center is the grid cell offset + predicted offset (sigmoid)
+            cx = (1 / (1 + np.exp(-tx)) + grid_x) / grid_width
+            cy = (1 / (1 + np.exp(-ty)) + grid_y) / grid_height
 
-            # Width and height (w, h)
-            w = (anchors_i[..., 0] * np.exp(box_wh[..., 0])) / image_width
-            h = (anchors_i[..., 1] * np.exp(box_wh[..., 1])) / image_height
+            # Calculate width and height using exp
+            # Width/height are anchor dimensions times exp of predicted offsets
+            pw = anchors_i[:, 0].reshape((1, 1, anchor_boxes))
+            ph = anchors_i[:, 1].reshape((1, 1, anchor_boxes))
+
+            w = pw * np.exp(tw) / image_width
+            h = ph * np.exp(th) / image_height
 
             # Convert to corner coordinates (x1, y1, x2, y2)
             x1 = (cx - w / 2) * image_width
             y1 = (cy - h / 2) * image_height
             x2 = (cx + w / 2) * image_width
             y2 = (cy + h / 2) * image_height
+
             # Stack boxes
             boxes_i = np.stack([x1, y1, x2, y2], axis=-1)
 
