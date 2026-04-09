@@ -240,13 +240,14 @@ class Yolo:
             # Record original dimensions (height, width)
             image_shapes.append(image.shape[:2])
 
+            # Convert BGR (OpenCV default) → RGB before resizing
+            # using numpy slicing to reverse the channel axis
+            image_rgb = image[:, :, ::-1]
+
             # Resize with inter-cubic interpolation to (input_w, input_h)
             # cv2.resize takes (width, height) as dsize
-            resized = cv2.resize(image, (input_w, input_h),
+            resized = cv2.resize(image_rgb, (input_w, input_h),
                                  interpolation=cv2.INTER_CUBIC)
-
-            # Convert BGR (OpenCV default) → RGB (model expects RGB)
-            resized = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
 
             # Rescale pixel values from [0, 255] to [0, 1]
             rescaled = resized / 255.0
