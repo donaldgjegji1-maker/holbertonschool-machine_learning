@@ -69,8 +69,16 @@ class Yolo:
 
             # Create meshgrid for cell indices
             # For each cell in the grid, we need its x and y indices
-            grid_x = np.arange(grid_width).reshape(1, grid_width, 1)
-            grid_y = np.arange(grid_height).reshape(grid_height, 1, 1)
+            grid_x = np.arange(grid_width).reshape(1, grid_width)
+            grid_y = np.arange(grid_height).reshape(grid_height, 1)
+
+            # Expand dimensions for broadcasting
+            grid_x = np.tile(grid_x, (grid_height, 1))
+            grid_y = np.tile(grid_y, (1, grid_width))
+
+            # Reshape for broadcasting with anchor boxes
+            grid_x = grid_x.reshape(grid_height, grid_width, 1)
+            grid_y = grid_y.reshape(grid_height, grid_width, 1)
 
             # Calculate center coordinates using sigmoid
             # Center is the grid cell offset + predicted offset (sigmoid)
