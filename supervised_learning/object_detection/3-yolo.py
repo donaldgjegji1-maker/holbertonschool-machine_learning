@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""YOLO v3 object detection - non_max_suppression"""
+"""YOLO v3 object detection - non_max_suppression (fixed)"""
 
 import numpy as np
 import tensorflow.keras as K
@@ -121,63 +121,65 @@ class Yolo:
         predicted_box_classes = []
         predicted_box_scores = []
 
-        # Process each unique class independently
         unique_classes = np.unique(box_classes)
 
         for cls in unique_classes:
             # Gather all boxes belonging to this class
             cls_mask = box_classes == cls
-            cls_boxes = filtered_boxes[cls_mask]    # (N, 4)
-            cls_scores = box_scores[cls_mask]        # (N,)
+            cls_boxes = filtered_boxes[cls_mask]   # (N, 4)
+            cls_scores = box_scores[cls_mask]       # (N,)
 
             # Sort by score descending
             order = np.argsort(cls_scores)[::-1]
             cls_boxes = cls_boxes[order]
             cls_scores = cls_scores[order]
 
-            # Greedy NMS
-            keep = []
-            while len(cls_boxes) > 0:
-                # Always keep the highest-scoring box
-                keep.append(0)
+            # Greedy NMS — track original indices so kept boxes accumulate
+            # correctly across all iterations
+            indices = np.arange(len(cls_boxes))
+            kept_indices = []
 
-                if len(cls_boxes) == 1:
+            while len(indices) > 0:
+                # The first index (highest score) is always kept
+                best_idx = indices[0]
+                kept_indices.append(best_idx)
+
+                if len(indices) == 1:
                     break
 
-                # Compute IoU of best box vs all remaining boxes
-                best = cls_boxes[0]
-                rest = cls_boxes[1:]
+                best_box = cls_boxes[best_idx]       # (4,)
+                rest_idx = indices[1:]
+                rest_boxes = cls_boxes[rest_idx]     # (M, 4)
 
                 # Intersection coordinates
-                ix1 = np.maximum(best[0], rest[:, 0])
-                iy1 = np.maximum(best[1], rest[:, 1])
-                ix2 = np.minimum(best[2], rest[:, 2])
-                iy2 = np.minimum(best[3], rest[:, 3])
+                ix1 = np.maximum(best_box[0], rest_boxes[:, 0])
+                iy1 = np.maximum(best_box[1], rest_boxes[:, 1])
+                ix2 = np.minimum(best_box[2], rest_boxes[:, 2])
+                iy2 = np.minimum(best_box[3], rest_boxes[:, 3])
 
-                # Intersection area (clamp to 0)
+                # Intersection area (clamp negatives to 0)
                 inter_w = np.maximum(0, ix2 - ix1)
                 inter_h = np.maximum(0, iy2 - iy1)
                 intersection = inter_w * inter_h
 
                 # Union area
-                best_area = (best[2] - best[0]) * (best[3] - best[1])
-                rest_area = (rest[:, 2] - rest[:, 0]) * \
-                            (rest[:, 3] - rest[:, 1])
+                best_area = ((best_box[2] - best_box[0]) *
+                             (best_box[3] - best_box[1]))
+                rest_area = ((rest_boxes[:, 2] - rest_boxes[:, 0]) *
+                             (rest_boxes[:, 3] - rest_boxes[:, 1]))
                 union = best_area + rest_area - intersection
 
                 iou = intersection / union
 
-                # Keep only boxes with IoU below the threshold
-                suppression_mask = iou < self.nms_t
-                cls_boxes = cls_boxes[1:][suppression_mask]
-                cls_scores = cls_scores[1:][suppression_mask]
+                # Retain only boxes whose IoU with best is below threshold
+                keep_mask = iou < self.nms_t
+                indices = rest_idx[keep_mask]
 
-            box_predictions.append(cls_boxes[:len(keep)])
+            box_predictions.append(cls_boxes[kept_indices])
             predicted_box_classes.append(
-                np.full(len(keep), cls, dtype=box_classes.dtype))
-            predicted_box_scores.append(cls_scores[:len(keep)])
+                np.full(len(kept_indices), cls, dtype=box_classes.dtype))
+            predicted_box_scores.append(cls_scores[kept_indices])
 
-        # Concatenate results across all classes
         box_predictions = np.concatenate(box_predictions, axis=0)
         predicted_box_classes = np.concatenate(predicted_box_classes, axis=0)
         predicted_box_scores = np.concatenate(predicted_box_scores, axis=0)
