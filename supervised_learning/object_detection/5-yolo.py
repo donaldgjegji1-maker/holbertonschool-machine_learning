@@ -245,6 +245,9 @@ class Yolo:
             resized = cv2.resize(image, (input_w, input_h),
                                  interpolation=cv2.INTER_CUBIC)
 
+            # Convert BGR (OpenCV default) → RGB (model expects RGB)
+            resized = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+
             # Rescale pixel values from [0, 255] to [0, 1]
             rescaled = resized / 255.0
 
