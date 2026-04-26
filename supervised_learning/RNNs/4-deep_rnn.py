@@ -7,6 +7,9 @@ import numpy as np
 
 
 def deep_rnn(rnn_cells, X, h_0):
+    """
+    A function that performs forward propagation for a deep RNN
+    """
     t, m, _ = X.shape
     num_layers = len(rnn_cells)
     h = h_0.shape[2]
