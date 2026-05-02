@@ -1,68 +1,71 @@
-#!/usr/bin/env python3
-"""
-Module to create a TF-IDF embedding matrix
-"""
 import numpy as np
 import re
 
 
 def tf_idf(sentences, vocab=None):
     """
-    Creates a TF-IDF embedding matrix
+    Creates TF-IDF embeddings for a list of sentences.
+
+    Args:
+        sentences: list of sentences to analyze
+        vocab: list of vocabulary words to use for analysis
+               If None, all words within sentences should be used
+
+    Returns:
+        embeddings: numpy.ndarray of shape (s, f) containing the embeddings
+        features: list of the features used for embeddings
     """
-    # 1. Pre-process sentences
-    processed = []
-    for s in sentences:
-        s = s.lower()
-        s = re.sub(r"'s\b", "", s)
-        s = re.sub(r"[^a-z\s]", " ", s)
-        processed.append(s.split())
+    # Preprocess sentences: convert to lowercase and extract words
+    def preprocess(text):
+        text = text.lower()
+        # Split on non-alphanumeric characters
+        words = re.findall(r'[a-z0-9]+', text)
+        return words
 
-    # 2. Determine the vocabulary
+    # Process all sentences
+    processed_sentences = [preprocess(sentence) for sentence in sentences]
+
+    # Determine vocabulary if not provided
     if vocab is None:
-        all_words = set()
-        for sentence in processed:
-            for word in sentence:
-                all_words.add(word)
-        features = sorted(list(all_words))
-    else:
-        features = vocab
+        # Collect all unique words
+        unique_words = set()
+        for sentence_words in processed_sentences:
+            unique_words.update(sentence_words)
+        vocab = sorted(list(unique_words))
 
-    word_to_idx = {word: i for i, word in enumerate(features)}
     s = len(sentences)
-    f = len(features)
+    f = len(vocab)
 
-    # 3. Calculate Term Frequency (TF)
-    # Using Relative TF: (count of word in doc) / (total words in doc)
-    tf = np.zeros((s, f))
-    for i, sentence in enumerate(processed):
-        for word in sentence:
-            if word in word_to_idx:
-                tf[i, word_to_idx[word]] += 1
-        # Divide by total words in the sentence (if sentence not empty)
-        if len(sentence) > 0:
-            tf[i] /= len(sentence)
+    # Create term frequency matrix (using raw counts)
+    tf_matrix = np.zeros((s, f))
+    for i, sentence_words in enumerate(processed_sentences):
+        for word in sentence_words:
+            if word in vocab:
+                j = vocab.index(word)
+                tf_matrix[i, j] += 1
 
-    # 4. Calculate Inverse Document Frequency (IDF)
-    # df is the number of documents containing the word
-    df = np.count_nonzero(tf, axis=0)
+    # Calculate document frequency
+    df = np.zeros(f)
+    for j, word in enumerate(vocab):
+        for sentence_words in processed_sentences:
+            if word in sentence_words:
+                df[j] += 1
 
-    # Calculate IDF: log(N / df)
-    # Using np.log (natural log) is standard for these tasks
-    with np.errstate(divide='ignore'):
-        idf = np.log(s / df)
-    idf[np.isinf(idf)] = 0
+    # Calculate IDF
+    idf = np.zeros(f)
+    for j in range(f):
+        if df[j] > 0:
+            idf[j] = np.log(s / df[j])
+        else:
+            idf[j] = 0
 
-    # 5. Calculate TF-IDF
-    embeddings = tf * idf
+    # Calculate TF-IDF
+    embeddings = tf_matrix * idf
 
-    # 6. L2 Normalization
-    norm = np.linalg.norm(embeddings, axis=1, keepdims=True)
-    embeddings = np.divide(
-        embeddings,
-        norm,
-        out=np.zeros_like(embeddings),
-        where=norm != 0
-    )
+    # L2 normalize each row
+    for i in range(s):
+        norm = np.linalg.norm(embeddings[i])
+        if norm > 0:
+            embeddings[i] = embeddings[i] / norm
 
-    return embeddings, np.array(features)
+    return embeddings, vocab
