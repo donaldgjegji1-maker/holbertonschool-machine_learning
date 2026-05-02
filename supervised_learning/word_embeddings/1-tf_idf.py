@@ -6,41 +6,37 @@ import re
 
 def tf_idf(sentences, vocab=None):
     """Creates a TF-IDF embedding"""
-    # Normalize sentences: lowercase, strip punctuation except apostrophes
+
     def normalize(sentence):
+        """Lowercase and strip punctuation, keep apostrophes"""
         sentence = sentence.lower()
-        # keep apostrophes attached (children's -> children's)
         sentence = re.sub(r"[^\w\s']", '', sentence)
         return sentence.split()
 
-    tokenized = [normalize(s) for s in sentences]
-
-    # Flatten tokens and strip trailing apostrophes/possessives
     def clean_token(token):
-        # turn "children's" -> "children"
+        """Strip possessives and stray apostrophes"""
         token = re.sub(r"'s$", '', token)
         return token.strip("'")
 
-    cleaned = [[clean_token(t) for t in tokens] for tokens in tokenized]
+    tokenized = [[clean_token(t) for t in normalize(s)] for s in sentences]
 
-    # Build vocab from all sentences if not provided
     if vocab is None:
         seen = []
-        for tokens in cleaned:
+        for tokens in tokenized:
             for t in tokens:
                 if t not in seen:
                     seen.append(t)
-        features = sorted(seen)
+        features = np.array(sorted(seen))
     else:
-        features = list(vocab)
+        features = np.array(list(vocab))
 
     s = len(sentences)
     f = len(features)
     feat_index = {feat: i for i, feat in enumerate(features)}
 
-    # TF: term frequency per sentence (raw count / total words in sentence)
+    # TF
     tf = np.zeros((s, f))
-    for i, tokens in enumerate(cleaned):
+    for i, tokens in enumerate(tokenized):
         total = len(tokens)
         if total == 0:
             continue
@@ -49,6 +45,18 @@ def tf_idf(sentences, vocab=None):
                 tf[i][feat_index[token]] += 1
         tf[i] /= total
 
-    # IDF: log((1 + s) / (1 + df)) + 1  — sklearn smooth variant
+    # IDF (sklearn smooth variant)
     idf = np.zeros(f)
-    for j, feat in enu
+    for j, feat in enumerate(features):
+        df = sum(1 for tokens in tokenized if feat in tokens)
+        idf[j] = np.log((1 + s) / (1 + df)) + 1
+
+    # TF-IDF
+    tfidf = tf * idf
+
+    # L2 normalise rows
+    norms = np.linalg.norm(tfidf, axis=1, keepdims=True)
+    norms[norms == 0] = 1
+    embeddings = tfidf / norms
+
+    return embeddings, features
