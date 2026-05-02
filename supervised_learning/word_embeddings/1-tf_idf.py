@@ -19,11 +19,12 @@ def tf_idf(sentences, vocab=None):
         embeddings: numpy.ndarray of shape (s, f) containing the embeddings
         features: list of the features used for embeddings
     """
-    # Preprocess sentences: convert to lowercase and extract words
+    # Preprocess sentences: convert to lowercase and split into words
     def preprocess(text):
         text = text.lower()
-        # Split on non-alphanumeric characters
-        words = re.findall(r'[a-z0-9]+', text)
+        # Split on whitespace and keep apostrophes for possessives
+        # This matches words that may contain apostrophes
+        words = re.findall(r"[a-z0-9]+(?:'[a-z]+)?", text)
         return words
 
     # Process all sentences
@@ -55,7 +56,7 @@ def tf_idf(sentences, vocab=None):
             if word in sentence_words:
                 df[j] += 1
 
-    # Calculate IDF
+    # Calculate IDF using natural log
     idf = np.zeros(f)
     for j in range(f):
         if df[j] > 0:
@@ -63,7 +64,7 @@ def tf_idf(sentences, vocab=None):
         else:
             idf[j] = 0
 
-    # Calculate TF-IDF
+    # Calculate TF-IDF (no normalization before L2)
     embeddings = tf_matrix * idf
 
     # L2 normalize each row
@@ -72,4 +73,4 @@ def tf_idf(sentences, vocab=None):
         if norm > 0:
             embeddings[i] = embeddings[i] / norm
 
-    return embeddings, vocab
+    return embeddings, list(vocab)  # Ensure features is a list
