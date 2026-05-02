@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Module to create TF-IDF embeddings for a list of sentences
+"""
 import numpy as np
 import re
 

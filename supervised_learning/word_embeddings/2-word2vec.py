@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Module to create, build, and train a gensim word2vec model
+"""
 from gensim.models import Word2Vec
 from gensim.models.word2vec import logger
 import logging
