@@ -1,76 +1,54 @@
 #!/usr/bin/env python3
-"""
-Module to create TF-IDF embeddings for a list of sentences
-"""
+"""TF-IDF embedding"""
 import numpy as np
 import re
 
 
 def tf_idf(sentences, vocab=None):
-    """
-    Creates TF-IDF embeddings for a list of sentences.
+    """Creates a TF-IDF embedding"""
+    # Normalize sentences: lowercase, strip punctuation except apostrophes
+    def normalize(sentence):
+        sentence = sentence.lower()
+        # keep apostrophes attached (children's -> children's)
+        sentence = re.sub(r"[^\w\s']", '', sentence)
+        return sentence.split()
 
-    Args:
-        sentences: list of sentences to analyze
-        vocab: list of vocabulary words to use for analysis
-               If None, all words within sentences should be used
+    tokenized = [normalize(s) for s in sentences]
 
-    Returns:
-        embeddings: numpy.ndarray of shape (s, f) containing the embeddings
-        features: list of the features used for embeddings
-    """
-    # Preprocess sentences: convert to lowercase and split into words
-    def preprocess(text):
-        text = text.lower()
-        # Split on whitespace and keep apostrophes for possessives
-        # This matches words that may contain apostrophes
-        words = re.findall(r"[a-z0-9]+(?:'[a-z]+)?", text)
-        return words
+    # Flatten tokens and strip trailing apostrophes/possessives
+    def clean_token(token):
+        # turn "children's" -> "children"
+        token = re.sub(r"'s$", '', token)
+        return token.strip("'")
 
-    # Process all sentences
-    processed_sentences = [preprocess(sentence) for sentence in sentences]
+    cleaned = [[clean_token(t) for t in tokens] for tokens in tokenized]
 
-    # Determine vocabulary if not provided
+    # Build vocab from all sentences if not provided
     if vocab is None:
-        # Collect all unique words
-        unique_words = set()
-        for sentence_words in processed_sentences:
-            unique_words.update(sentence_words)
-        vocab = sorted(list(unique_words))
+        seen = []
+        for tokens in cleaned:
+            for t in tokens:
+                if t not in seen:
+                    seen.append(t)
+        features = sorted(seen)
+    else:
+        features = list(vocab)
 
     s = len(sentences)
-    f = len(vocab)
+    f = len(features)
+    feat_index = {feat: i for i, feat in enumerate(features)}
 
-    # Create term frequency matrix (using raw counts)
-    tf_matrix = np.zeros((s, f))
-    for i, sentence_words in enumerate(processed_sentences):
-        for word in sentence_words:
-            if word in vocab:
-                j = vocab.index(word)
-                tf_matrix[i, j] += 1
+    # TF: term frequency per sentence (raw count / total words in sentence)
+    tf = np.zeros((s, f))
+    for i, tokens in enumerate(cleaned):
+        total = len(tokens)
+        if total == 0:
+            continue
+        for token in tokens:
+            if token in feat_index:
+                tf[i][feat_index[token]] += 1
+        tf[i] /= total
 
-    # Calculate document frequency
-    df = np.zeros(f)
-    for j, word in enumerate(vocab):
-        for sentence_words in processed_sentences:
-            if word in sentence_words:
-                df[j] += 1
-
-    # Calculate IDF using natural log
+    # IDF: log((1 + s) / (1 + df)) + 1  — sklearn smooth variant
     idf = np.zeros(f)
-    for j in range(f):
-        if df[j] > 0:
-            idf[j] = np.log(s / df[j])
-        else:
-            idf[j] = 0
-
-    # Calculate TF-IDF (no normalization before L2)
-    embeddings = tf_matrix * idf
-
-    # L2 normalize each row
-    for i in range(s):
-        norm = np.linalg.norm(embeddings[i])
-        if norm > 0:
-            embeddings[i] = embeddings[i] / norm
-
-    return embeddings, list(vocab)  # Ensure features is a list
+    for j, feat in enu
