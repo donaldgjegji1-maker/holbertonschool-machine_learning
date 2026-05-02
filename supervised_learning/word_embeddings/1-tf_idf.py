@@ -9,25 +9,16 @@ import re
 def tf_idf(sentences, vocab=None):
     """
     Creates a TF-IDF embedding matrix
-
-    Args:
-        sentences: list of sentences to analyze
-        vocab: list of the vocabulary words to use for the analysis
-
-    Returns:
-        embeddings: numpy.ndarray of shape (s, f) containing the embeddings
-        features: list of the features used for embeddings
     """
-    # 1. Pre-process sentences to match the BoW logic
+    # 1. Pre-process sentences
     processed = []
     for s in sentences:
-        # Standardize "children's" to "children" and remove punctuation
         s = s.lower()
         s = re.sub(r"'s\b", "", s)
         s = re.sub(r"[^a-z\s]", " ", s)
         processed.append(s.split())
 
-    # 2. Determine the vocabulary (features)
+    # 2. Determine the vocabulary
     if vocab is None:
         all_words = set()
         for sentence in processed:
@@ -42,20 +33,25 @@ def tf_idf(sentences, vocab=None):
     f = len(features)
 
     # 3. Calculate Term Frequency (TF)
+    # Using Relative TF: (count of word in doc) / (total words in doc)
     tf = np.zeros((s, f))
     for i, sentence in enumerate(processed):
         for word in sentence:
             if word in word_to_idx:
                 tf[i, word_to_idx[word]] += 1
+        # Divide by total words in the sentence (if sentence not empty)
+        if len(sentence) > 0:
+            tf[i] /= len(sentence)
 
     # 4. Calculate Inverse Document Frequency (IDF)
-    # Using the natural log formula: ln(total sentences / sentences with word)
+    # df is the number of documents containing the word
     df = np.count_nonzero(tf, axis=0)
 
-    # Avoid division by zero for words in vocab that don't appear in sentences
+    # Calculate IDF: log(N / df)
+    # Using np.log (natural log) is standard for these tasks
     with np.errstate(divide='ignore'):
         idf = np.log(s / df)
-    idf[np.isinf(idf)] = 0  # Set IDF to 0 for words not found in any sentence
+    idf[np.isinf(idf)] = 0
 
     # 5. Calculate TF-IDF
     embeddings = tf * idf
@@ -69,4 +65,4 @@ def tf_idf(sentences, vocab=None):
         where=norm != 0
     )
 
-    return embeddings, features
+    return embeddings, np.array(features)
